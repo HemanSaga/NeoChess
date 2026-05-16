@@ -63,5 +63,9 @@ public class VRGrabSetup : MonoBehaviour
         // 5. Add snap back behaviour
       if (pieceRoot.GetComponent<PieceSnapBack>() == null)
        pieceRoot.AddComponent<PieceSnapBack>();
+
+       // 6. Add hover glow effect
+       if (pieceRoot.GetComponent<PieceHoverEffect>() == null)
+        pieceRoot.AddComponent<PieceHoverEffect>();
     }
 }

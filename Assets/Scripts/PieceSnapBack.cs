@@ -5,26 +5,43 @@ public class PieceSnapBack : MonoBehaviour
 {
     private UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable grabInteractable;
     private ChessBoardGenerator board;
-    private Vector3 lastValidPosition;
+    private ChessPiece piece;
 
     void Start()
     {
         grabInteractable = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
-        board = FindFirstObjectByType<ChessBoardGenerator>();
+        board  = FindFirstObjectByType<ChessBoardGenerator>();
+        piece  = GetComponent<ChessPiece>();
 
-        lastValidPosition = transform.position;
-
-        // Listen for release event
+        grabInteractable.selectEntered.AddListener(OnGrabbed);
         grabInteractable.selectExited.AddListener(OnReleased);
+    }
+
+    void OnGrabbed(SelectEnterEventArgs args)
+    {
+        // Tell game manager piece was picked up
+        if (ChessGameManager.Instance != null)
+            ChessGameManager.Instance.OnPiecePickedUp(piece);
     }
 
     void OnReleased(SelectExitEventArgs args)
     {
-        // Find the nearest tile center and snap to it
-        Vector3 nearest = board.GetNearestTilePosition(transform.position);
-        transform.position = nearest;
+        // Find nearest tile
+        ChessBoardState boardState = FindFirstObjectByType<ChessBoardState>();
+        Vector2Int nearestSquare = boardState.GetSquareFromWorldPos(
+            transform.position,
+            board
+        );
 
-        // Freeze rotation so piece stands upright
+        // Tell game manager where piece was dropped
+        if (ChessGameManager.Instance != null)
+            ChessGameManager.Instance.OnPiecePlacedDown(
+                piece,
+                nearestSquare.x,
+                nearestSquare.y
+            );
+
+        // Snap upright
         GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
         transform.rotation = Quaternion.identity;
     }
